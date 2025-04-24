@@ -12,7 +12,7 @@ export default function Hero() {
       </h1>
 
       <p className="text-xl text-gray-500 text-center">
-        some description about the website here
+        Let our intelligent travel assistant plan, suggest, and guide you to unforgettable destinations — tailored just for you
       </p>
 
       <Link to={"/create-trip"}>
