@@ -76,7 +76,7 @@ export default function CreateTrip() {
         </div>
 
         <div className="my-10 flex justify-end">
-          <Button> Plan your trip!</Button>
+          <Button> Generate trip!</Button>
         </div>
 
       </div>
