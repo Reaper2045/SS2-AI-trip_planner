@@ -28,7 +28,7 @@ Create a `.env.local` file with:
 # Required API Keys
 VITE_GOOGLE_PLACE_API_KEY=your_key_here
 VITE_GOOGLE_GEMINI_AI_API_KEY=your_key_here
-
+```
 ### Troubleshooting
 
 For "[react-google-places-autocomplete]: Google script not loaded" error:
