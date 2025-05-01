@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SelectBudgetOptions, SelectTravelerList } from "@/constants/option";
+import { AI_PROMPT, SelectBudgetOptions, SelectTravelerList } from "@/constants/option";
 import React, { useEffect, useState } from "react";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
+import { toast } from "sonner";
 
 export default function CreateTrip() {
   const [place, setPlace] = useState();
@@ -21,12 +22,18 @@ export default function CreateTrip() {
   }, [formData]); //each time formData is cloned, print it out to check
 
   const OnGenerateTrip = () => {
-    if (formData?.noOfDays> 7) {
-      console.log("enter trip less than 7 days");
+    if (formData?.noOfDays> 7 && !formData?.location || !formData?.budget || !formData?.travelers) {
+      toast.error("Please fill all details");
       return;
     }
-    console.log("Trip created, desc below");
-    console.log(formData);
+    const FINAL_PROMPT = AI_PROMPT
+    .replace('{location}', formData?.location?.label)
+    .replace('{totalDays}', formData?.noOfDays)
+    .replace('{travelers}', formData?.travelers)
+    .replace('{budget}', formData?.budget)
+    .replace('{totalDays}', formData?.noOfDays)
+
+    ;
   }
 
   return (
@@ -51,7 +58,7 @@ export default function CreateTrip() {
                 place,
                 onChange: (p) => {
                   setPlace(p);
-                  handleInputChange("location", p);
+                  handleInputChange('location', p);
                 },
               }}
               //print out to check respond of API
