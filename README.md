@@ -29,14 +29,14 @@ Create a `.env.local` file with:
 VITE_GOOGLE_PLACE_API_KEY=your_key_here
 VITE_GOOGLE_GEMINI_AI_API_KEY=your_key_here
 
-## Troubleshooting
+### Troubleshooting
 
 For "[react-google-places-autocomplete]: Google script not loaded" error:
 - Check `.env.local` has valid Google Places API key
 - Enable Google Places API in Google Cloud Console
 - Enable billing in your Google Cloud account
 
-## Tech Stack
+### Tech Stack
 - React/Vite + TailwindCSS
 - Firebase (Auth, Firestore, Storage)
 - Google Gemini AI + Places API
