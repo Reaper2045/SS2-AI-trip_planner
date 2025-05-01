@@ -4,6 +4,8 @@ import { AI_PROMPT, SelectBudgetOptions, SelectTravelerList } from "@/constants/
 import React, { useEffect, useState } from "react";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+import { chatSession } from "@/service/AImodal";
 
 export default function CreateTrip() {
   const [place, setPlace] = useState();
@@ -21,11 +23,20 @@ export default function CreateTrip() {
     console.log(formData);
   }, [formData]); //each time formData is cloned, print it out to check
 
-  const OnGenerateTrip = () => {
-    if (formData?.noOfDays> 7 && !formData?.location || !formData?.budget || !formData?.travelers) {
+  const OnGenerateTrip =async () => {
+    // Validate form data
+    if (!formData?.location || !formData?.noOfDays || !formData?.budget || !formData?.travelers) {
       toast.error("Please fill all details");
       return;
     }
+    
+    // Check if days exceed 7
+    if (formData.noOfDays > 7) {
+      toast.error("Maximum trip duration is 7 days");
+      return;
+    }
+
+
     const FINAL_PROMPT = AI_PROMPT
     .replace('{location}', formData?.location?.label)
     .replace('{totalDays}', formData?.noOfDays)
@@ -33,7 +44,13 @@ export default function CreateTrip() {
     .replace('{budget}', formData?.budget)
     .replace('{totalDays}', formData?.noOfDays)
 
-    ;
+    console.log("Sending prompt to Gemini:", FINAL_PROMPT);
+      
+      // Send the prompt to Gemini via the chat session
+      const result = await chatSession.sendMessage(FINAL_PROMPT);
+      const responseText = result.response.text();
+      
+      console.log( responseText);
   }
 
   return (
