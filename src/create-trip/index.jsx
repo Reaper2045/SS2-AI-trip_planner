@@ -1,18 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AI_PROMPT, SelectBudgetOptions, SelectTravelerList } from "@/constants/option";
+import {
+  AI_PROMPT,
+  SelectBudgetOptions,
+  SelectTravelerList,
+} from "@/constants/option";
 import React, { useEffect, useState } from "react";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { chatSession } from "@/service/AImodal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { FcGoogle } from "react-icons/fc";
+import { useGoogleLogin } from "@react-oauth/google";
 
 export default function CreateTrip() {
   const [place, setPlace] = useState();
   const [formData, setFormData] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const handleInputChange = (name, value) => {
-
     setFormData({
       ...formData,
       [name]: value,
@@ -23,38 +36,58 @@ export default function CreateTrip() {
     console.log(formData);
   }, [formData]); //each time formData is cloned, print it out to check
 
-  const OnGenerateTrip =async () => {
+  const login = useGoogleLogin({
+    onSuccess:(res) => console.log(res),
+    onError:(err) => console.log(err)
+    
+  });
+
+  const OnGenerateTrip = async () => {
+    const user = localStorage.getItem("user");
+    if (!user) {
+      setOpenDialog(true);
+      console.log(openDialog);
+    }
+
     // Validate form data
-    if (!formData?.location || !formData?.noOfDays || !formData?.budget || !formData?.travelers) {
+    if (
+      !formData?.location ||
+      !formData?.noOfDays ||
+      !formData?.budget ||
+      !formData?.travelers
+    ) {
       toast.error("Please fill all details");
       return;
     }
-    
+
     // Check if days exceed 7
     if (formData.noOfDays > 7) {
       toast.error("Maximum trip duration is 7 days");
       return;
     }
 
-
-    const FINAL_PROMPT = AI_PROMPT
-    .replace('{location}', formData?.location?.label)
-    .replace('{totalDays}', formData?.noOfDays)
-    .replace('{travelers}', formData?.travelers)
-    .replace('{budget}', formData?.budget)
-    .replace('{totalDays}', formData?.noOfDays)
+    const FINAL_PROMPT = AI_PROMPT.replace(
+      "{location}",
+      formData?.location?.label
+    )
+      .replace("{totalDays}", formData?.noOfDays)
+      .replace("{travelers}", formData?.travelers)
+      .replace("{budget}", formData?.budget)
+      .replace("{totalDays}", formData?.noOfDays);
 
     console.log("Sending prompt to Gemini:", FINAL_PROMPT);
-      
-      // Send the prompt to Gemini via the chat session
-      const result = await chatSession.sendMessage(FINAL_PROMPT);
-      const responseText = result.response.text();
-      
-      console.log( responseText);
-  }
+
+    // Send the prompt to Gemini via the chat session
+    const result = await chatSession.sendMessage(FINAL_PROMPT);
+    const responseText = result.response.text();
+
+    console.log(responseText);
+  };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="">
+      
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 ">
       <div className="sm:px-10 md:px-32 lg:px-56 xl:px-10 px-5 mt-10">
         <h2 className="font-bold text-3xl">Tell us your travel ideas 🏕️🌴</h2>
 
@@ -75,7 +108,7 @@ export default function CreateTrip() {
                 place,
                 onChange: (p) => {
                   setPlace(p);
-                  handleInputChange('location', p);
+                  handleInputChange("location", p);
                 },
               }}
               //print out to check respond of API
@@ -145,7 +178,36 @@ export default function CreateTrip() {
         <div className="my-10 flex justify-end">
           <Button onClick={OnGenerateTrip}> Generate trip!</Button>
         </div>
+        {/* Login dialog */}
+        <Dialog open={openDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogDescription>
+                <div className="flex flex-row items-center justify-center">
+                  <img src="../logo_new.svg" />
+                  <h2 className="text-lg font-bold">
+                    Sign in with Google Authentication
+                  </h2>
+                </div>
+
+                <div className="flex flex-row justify-center mt-5">
+                  <p>View and save your journey just by Google Account!</p>
+                </div>
+                <div className="flex flex-row justify-center mt-2">
+                  <Button 
+                  className='w-full mt-5 flex gap-4 items-center'
+                  onClick={login}> 
+                    <FcGoogle className="h-10" />
+                    Sign in with Google
+                  </Button>
+                </div>
+                
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       </div>
+    </div>
     </div>
   );
 }
