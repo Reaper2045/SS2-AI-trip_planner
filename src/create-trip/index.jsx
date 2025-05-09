@@ -19,11 +19,14 @@ import {
 } from "@/components/ui/dialog";
 import { FcGoogle } from "react-icons/fc";
 import { useGoogleLogin } from "@react-oauth/google";
+import axios from "axios";
+
 
 export default function CreateTrip() {
   const [place, setPlace] = useState();
   const [formData, setFormData] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (name, value) => {
     setFormData({
@@ -37,16 +40,20 @@ export default function CreateTrip() {
   }, [formData]); //each time formData is cloned, print it out to check
 
   const login = useGoogleLogin({
-    onSuccess:(res) => console.log(res),
-    onError:(err) => console.log(err)
-    
-  });
+    onSuccess: (loginRes) => {
+      console.log(loginRes);
+      GetUserProfile(loginRes);
+    },
+    onError: (err) => console.log(err)
+  }); 
+  
+  
 
   const OnGenerateTrip = async () => {
     const user = localStorage.getItem("user");
     if (!user) {
       setOpenDialog(true);
-      console.log(openDialog);
+      return;
     }
 
     // Validate form data
@@ -66,6 +73,7 @@ export default function CreateTrip() {
       return;
     }
 
+    setLoading(true);
     const FINAL_PROMPT = AI_PROMPT.replace(
       "{location}",
       formData?.location?.label
@@ -82,6 +90,48 @@ export default function CreateTrip() {
     const responseText = result.response.text();
 
     console.log(responseText);
+    setLoading(false);
+    SaveAiTrip(responseText);
+  };
+
+  const SaveAiTrip = async (TripData) => {
+    setLoading(true);
+    const user = JSON.parse(localStorage.getItem("user"));
+    const docID = Date.now().toString();
+    
+    await setDoc(doc(db, "AItrip", docID), {
+      userSelection: formData,
+      tripData: TripData,
+      userEmail: user?.email,
+      id: docID,
+    });
+    setLoading(false);
+  }
+
+  const GetUserProfile = (tokenInfo) => {
+    axios
+      .get(
+        `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${tokenInfo?.access_token}`,
+        {
+          headers: {
+            Authorization: `Bearer ${tokenInfo?.access_token}`,
+            Accept: "Application/json",
+          },
+        }
+      )
+      .then((resp) => {
+        const userData = {
+          ...resp.data,
+          access_token: tokenInfo?.access_token
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
+        console.log("User Profile:", JSON.stringify(userData, null, 2));
+        setOpenDialog(false); // Close the dialog after successful login
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user profile:", err);
+        toast.error("Failed to fetch user profile");
+      });
   };
 
   return (
@@ -179,9 +229,12 @@ export default function CreateTrip() {
           <Button onClick={OnGenerateTrip}> Generate trip!</Button>
         </div>
         {/* Login dialog */}
-        <Dialog open={openDialog}>
+        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogContent>
             <DialogHeader>
+              <DialogTitle>
+                Sign in with Google
+              </DialogTitle>
               <DialogDescription>
                 <div className="flex flex-row items-center justify-center">
                   <img src="../logo_new.svg" />
@@ -195,13 +248,13 @@ export default function CreateTrip() {
                 </div>
                 <div className="flex flex-row justify-center mt-2">
                   <Button 
-                  className='w-full mt-5 flex gap-4 items-center'
-                  onClick={login}> 
+                    className='w-full mt-5 flex gap-4 items-center'
+                    onClick={login}
+                  > 
                     <FcGoogle className="h-10" />
                     Sign in with Google
                   </Button>
                 </div>
-                
               </DialogDescription>
             </DialogHeader>
           </DialogContent>
