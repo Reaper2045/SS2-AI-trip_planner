@@ -16,7 +16,7 @@ export default function Hero() {
       </p>
 
       <Link to={"/create-trip"}>
-        <Button> Get Started</Button>
+        <Button className="cursor-pointer"> Get Started</Button>
       </Link>
     </div>
   );

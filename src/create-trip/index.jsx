@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FcGoogle } from "react-icons/fc";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import { auth } from "@/service/firebaseConfig";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { db } from "@/service/firebaseConfig";
@@ -42,6 +42,26 @@ export default function CreateTrip() {
     console.log(formData);
   }, [formData]); //each time formData is cloned, print it out to check
 
+  //check user authentication
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User is signed in:", user);
+        localStorage.setItem("user", JSON.stringify({
+          email: user.email,
+          name: user.displayName,
+          picture: user.photoURL,
+          uid: user.uid,
+        }));
+      } else {
+        console.log("User is signed out");
+        localStorage.removeItem("user");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const login = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -64,8 +84,8 @@ export default function CreateTrip() {
   };
 
   const OnGenerateTrip = async () => {
-    const user = localStorage.getItem("user");
-    if (!user) {
+    
+    if (!auth.currentUser) {
       setOpenDialog(true);
       return;
     }
@@ -99,7 +119,7 @@ export default function CreateTrip() {
 
     console.log("Sending prompt to Gemini:", FINAL_PROMPT);
 
-    // Send the prompt to Gemini via the chat session
+    
     const result = await chatSession.sendMessage(FINAL_PROMPT);
     const responseText = result.response.text();
 
@@ -111,9 +131,8 @@ export default function CreateTrip() {
   const SaveAiTrip = async (TripData) => {
     try {
       setLoading(true);
-      const user = JSON.parse(localStorage.getItem("user"));
-      
-      if (!user || !user.email) {
+    
+      if (!auth.currentUser) {
         toast.error("User not authenticated");
         return;
       }
@@ -122,7 +141,7 @@ export default function CreateTrip() {
       console.log("Saving trip data:", {
         userSelection: formData,
         tripData: TripData,
-        userEmail: user.email,
+        userEmail: auth.currentUser.email,
         id: docID,
       });
 
@@ -131,7 +150,7 @@ export default function CreateTrip() {
       await setDoc(doc(db, "AItrip", docID), {
         userSelection: formData,
         tripData: TripData,
-        userEmail: user.email,
+        userEmail: auth.currentUser.email,
         id: docID,
       });
       
