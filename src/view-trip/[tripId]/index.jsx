@@ -3,6 +3,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import React, { use, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner';
+import InfoSection from '../components/InfoSection';
 
 export default function ViewTrip() {
     const {tripId} = useParams();
@@ -31,11 +32,13 @@ export default function ViewTrip() {
     };
 
   return (
-    <div>
+    <div className='p-10 md:px-20 lg:px-44 xl:px-56'>
     {/*Info section*/}
+    <InfoSection trip={trip}/>
     {/*Hotels*/}
     {/*Daily Plan*/}
     {/*Footer*/}
+    
     </div>
   )
 }
