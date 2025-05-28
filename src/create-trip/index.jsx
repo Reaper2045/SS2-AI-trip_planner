@@ -84,7 +84,6 @@ export default function CreateTrip() {
   };
 
   const OnGenerateTrip = async () => {
-    
     if (!auth.currentUser) {
       setOpenDialog(true);
       return;
@@ -114,18 +113,21 @@ export default function CreateTrip() {
     )
       .replace("{totalDays}", formData?.noOfDays)
       .replace("{travelers}", formData?.travelers)
-      .replace("{budget}", formData?.budget)
-      .replace("{totalDays}", formData?.noOfDays);
+      .replace("{budget}", formData?.budget);
 
     console.log("Sending prompt to Gemini:", FINAL_PROMPT);
 
-    
-    const result = await chatSession.sendMessage(FINAL_PROMPT);
-    const responseText = result.response.text();
-
-    console.log(responseText);
-    setLoading(false);
-    SaveAiTrip(responseText);
+    try {
+      const result = await chatSession.sendMessage(FINAL_PROMPT);
+      const responseText = result.response.text();
+      console.log("AI Response:", responseText);
+      setLoading(false);
+      SaveAiTrip(responseText);
+    } catch (error) {
+      console.error("Error generating trip:", error);
+      toast.error("Failed to generate trip");
+      setLoading(false);
+    }
   };
 
   const SaveAiTrip = async (TripData) => {
@@ -137,19 +139,36 @@ export default function CreateTrip() {
         return;
       }
 
+      // Clean the response to ensure it's valid JSON
+      let cleanResponse = TripData;
+      
+      // Remove any markdown code block indicators if present
+      cleanResponse = cleanResponse.replace(/```json\n?|\n?```/g, '');
+      
+      // Remove any leading/trailing whitespace
+      cleanResponse = cleanResponse.trim();
+      
+      // Parse the JSON to validate it
+      let parsedData;
+      try {
+        parsedData = JSON.parse(cleanResponse);
+      } catch (error) {
+        console.error("Invalid JSON response:", cleanResponse);
+        toast.error("Failed to parse AI response");
+        return;
+      }
+
       const docID = Date.now().toString();
       console.log("Saving trip data:", {
         userSelection: formData,
-        tripData: TripData,
+        tripData: parsedData,
         userEmail: auth.currentUser.email,
         id: docID,
       });
 
-      console.log("Current Firebase user:", auth.currentUser);
-
       await setDoc(doc(db, "AItrip", docID), {
         userSelection: formData,
-        tripData: TripData,
+        tripData: parsedData, // Use the parsed JSON
         userEmail: auth.currentUser.email,
         id: docID,
       });
