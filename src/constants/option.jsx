@@ -50,35 +50,39 @@ export const SelectBudgetOptions = [
   },
 ];
 
-export const AI_PROMPT = `Generate a travel plan in the following JSON format:
+export const AI_PROMPT = `Generate a travel plan in JSON format exactly like the following example, matching the structure, field names, and level of detail. Do not add any extra text or explanation.
+
 {
   "hotels": [
     {
-      "hotelName": "string",
-      "hotelAddress": "string",
-      "price": "string",
-      "hotelImageUrl": "string",
-      "geoCoordinates": "string",
-      "rating": "string",
-      "description": "string"
+      "hotelName": "Hanoi Backpackers' Hostels",
+      "hotelAddress": "28 Hang Buom, Hanoi, Vietnam",
+      "price": "$8-$15 per night",
+      "hotelImageUrl": "https://www.booking.com/hotel/vn/hanoi-backpackers.en-gb.html",
+      "geoCoordinates": "21.0298, 105.8514",
+      "rating": "4 stars",
+      "description": "A popular hostel for budget travelers, offering dorm beds and private rooms in a central location."
     }
+    // ... more hotels
   ],
   "itinerary": [
     {
-      "day": number,
-      "activities": [
+      "day": "Day 1",
+      "plan": [
         {
-          "placeName": "string",
-          "placeDetails": "string",
-          "placeImageUrl": "string",
-          "geoCoordinates": "string",
-          "ticketPricing": "string",
-          "rating": "string",
-          "time": "string",
-          "bestTimeToVisit": "string"
+          "time": "9:00 AM - 12:00 PM",
+          "placeName": "Hoan Kiem Lake & Ngoc Son Temple",
+          "placeDetails": "...",
+          "placeImageUrl": "...",
+          "geoCoordinates": "...",
+          "placeAddress": "...",
+          "ticketPricing": "...",
+          "timeToTravel": "..."
         }
+        // ... more activities
       ]
     }
+    // ... more days
   ]
 }
 
