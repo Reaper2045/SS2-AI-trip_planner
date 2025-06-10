@@ -53,9 +53,7 @@ export default function HotelCardItem({ item, index }) {
     <Link
       to={
         "https://www.google.com/maps/search/?api=1&query=" +
-        item.hotelName +
-        ", " +
-        item.hotelAddress
+        item.hotelName
       }
       target="_blank"
     >

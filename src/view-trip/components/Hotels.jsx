@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 import HotelCardItem from "./HotelCardItem";
 
 export default function Hotels({ trip }) {
-
-
   return (
     <div>
       <h2 className="font-bold text-xl mt-5">Hotels Recommendation</h2>

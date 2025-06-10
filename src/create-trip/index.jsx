@@ -21,7 +21,7 @@ import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from
 import { auth } from "@/service/firebaseConfig";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { db } from "@/service/firebaseConfig";
-import { setDoc, doc } from "firebase/firestore";
+import { setDoc, doc, serverTimestamp, collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { useNavigate, useNavigation } from "react-router-dom";
 
 export default function CreateTrip() {
@@ -168,9 +168,10 @@ export default function CreateTrip() {
 
       await setDoc(doc(db, "AItrip", docID), {
         userSelection: formData,
-        tripData: parsedData, // Use the parsed JSON
+        tripData: parsedData, 
         userEmail: auth.currentUser.email,
         id: docID,
+        createdAt: serverTimestamp(),
       });
       
       toast.success("Trip saved successfully!");

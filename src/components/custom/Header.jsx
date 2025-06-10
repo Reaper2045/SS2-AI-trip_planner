@@ -1,35 +1,28 @@
-import { Image } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { signOut, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/service/firebaseConfig";
-import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { toast } from "sonner";
-import { FcGoogle } from "react-icons/fc";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
+function getUserProfile() {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch {
+    return null;
+  }
+}
 
 export default function Header() {
   const nav = useNavigate();
-  const [user, setUser] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [user, setUser] = useState(getUserProfile());
 
-  // Listen for auth state changes
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => unsubscribe();
+    // Listen for changes in localStorage (e.g., login/logout in other tabs)
+    const onStorage = () => setUser(getUserProfile());
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const login = async () => {
@@ -38,7 +31,8 @@ export default function Header() {
       provider.addScope("profile");
       provider.addScope("email");
       const result = await signInWithPopup(auth, provider);
-      setOpenDialog(false);
+      localStorage.setItem("user", JSON.stringify(result.user));
+      setUser(result.user);
       toast.success("Successfully signed in!");
     } catch (err) {
       console.error("Failed to sign in:", err);
@@ -46,14 +40,13 @@ export default function Header() {
     }
   };
 
-  const handleSignIn = () => {
-    setOpenDialog(true);
-  };
-
-  const handleSignOut = async () => {
+  const googleLogout = async () => {
     try {
       await signOut(auth);
+      localStorage.removeItem("user");
+      setUser(null);
       toast.success("Successfully signed out!");
+      nav("/");
     } catch (error) {
       console.error("Error signing out:", error);
       toast.error("Failed to sign out");
@@ -61,60 +54,36 @@ export default function Header() {
   };
 
   return (
-    <>
-      <div className="p-2 shadow-sm flex justify-between items-center px-5">
-        <div className="flex gap-2 cursor-pointer" onClick={() => {nav('/')}}>
-          <img className="h-13" src="/logo_new.svg" />
-          <span className="font-bold text-4xl text-[#314689]">Trippy</span>
-        </div>
-        <div>
-          {user ? (
-            <Button 
-              className='cursor-pointer'
-              onClick={handleSignOut}
-            >
-              Sign Out
+    <div className="p-3 shadow-sm flex justify-between items-center">
+      <img className="h-13 cursor-pointer" src="/logo_new.svg" onClick={()=> nav("/")}/>
+      <div>
+        {user ? (
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="rounded-full" onClick={() => nav("/my-trips")}>
+              My Trips
             </Button>
-          ) : (
-            <Button 
-              className='cursor-pointer'
-              onClick={handleSignIn}
-            >
-              Sign In
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Login dialog */}
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Sign in with Google</DialogTitle>
-            <DialogDescription>
-              <div className="flex flex-row items-center justify-center">
-                <img src="/logo_new.svg" />
-                <h2 className="text-lg font-bold">
-                  Sign in with Google Authentication
-                </h2>
-              </div>
-
-              <div className="flex flex-row justify-center mt-5">
-                <p>View and save your journey just by Google Account!</p>
-              </div>
-              <div className="flex flex-row justify-center mt-2">
-                <Button
-                  className="w-full mt-5 flex gap-4 items-center"
-                  onClick={login}
+            <Popover>
+              <PopoverTrigger asChild>
+                <img
+                  src={user.picture}
+                  className="h-[35px] w-[35px] rounded-full cursor-pointer"
+                  alt="User Avatar"
+                />
+              </PopoverTrigger>
+              <PopoverContent className="w-32 p-2">
+                <h2
+                  className="cursor-pointer text-center text-red-600 hover:underline"
+                  onClick={googleLogout}
                 >
-                  <FcGoogle className="h-10" />
-                  Sign in with Google
-                </Button>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    </>
+                  Logout
+                </h2>
+              </PopoverContent>
+            </Popover>
+          </div>
+        ) : (
+          <Button onClick={login}>Sign In</Button>
+        )}
+      </div>
+    </div>
   );
 }
