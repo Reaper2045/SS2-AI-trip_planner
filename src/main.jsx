@@ -8,6 +8,10 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import ViewTrip from "./view-trip/[tripId]";
 import Layout from "./Layout";
 import MyTrips from "./my-trips";
+import Settings from "./pages/settings";
+import AdminDashboard from "./pages/admin/Dashboard";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import SetPassword from "./pages/settings/SetPassword";
 
 const router = createBrowserRouter([
   {
@@ -17,7 +21,38 @@ const router = createBrowserRouter([
       { path: '/', element: <App /> },
       { path: '/create-trip', element: <CreateTrip /> },
       { path: '/view-trip/:tripId', element: <ViewTrip /> },
-      { path: '/my-trips', element: <MyTrips /> }
+      { 
+        path: '/my-trips', 
+        element: (
+          <ProtectedRoute>
+            <MyTrips />
+          </ProtectedRoute>
+        ) 
+      },
+      { 
+        path: '/settings', 
+        element: (
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        ) 
+      },
+      { 
+        path: '/admin', 
+        element: (
+          <ProtectedRoute requireAdmin={true}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        ) 
+      },
+      { 
+        path: '/set-password', 
+        element: (
+          <ProtectedRoute>
+            <SetPassword />
+          </ProtectedRoute>
+        ) 
+      },
     ],
   },
 ]);

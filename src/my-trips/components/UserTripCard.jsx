@@ -3,9 +3,20 @@ import { Link } from "react-router-dom";
 import { GetPlaceDetails, PHOTO_REF_URL } from "@/service/GlobalAPI";
 
 export default function UserTripCardItem({ trip, index }) {
-  const { id, userSelection } = trip;
+  const { id, userSelection, createdAt } = trip;
   const [photoUrl, setPhotoUrl] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp.seconds * 1000);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${hours}:${minutes} - ${day}/${month}/${year}`;
+  };
 
   useEffect(() => {
     setPhotoUrl(null);
@@ -44,7 +55,7 @@ export default function UserTripCardItem({ trip, index }) {
 
   return (
     <Link to={`/view-trip/${id}`} className="block hover:shadow-lg transition-shadow duration-200">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden h-[400px] w-full">
         <div className="relative w-full h-48">
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
@@ -64,8 +75,8 @@ export default function UserTripCardItem({ trip, index }) {
             style={{ display: loading && !photoUrl ? "none" : "block" }}
           />
         </div>
-        <div className="p-4">
-          <h3 className="font-semibold text-lg mb-1">
+        <div className="p-4 h-[calc(400px-12rem)] flex flex-col">
+          <h3 className="font-semibold text-lg mb-1 truncate" title={userSelection?.location?.label || 'Trip Destination'}>
             {userSelection?.location?.label || 'Trip Destination'}
           </h3>
           <div className="text-gray-600 text-sm mb-1">
@@ -75,6 +86,9 @@ export default function UserTripCardItem({ trip, index }) {
           </div>
           <div className="text-gray-600 text-sm mb-1">
             <span className="font-medium">Budget:</span> {userSelection?.budget || '-'}
+          </div>
+          <div className="text-gray-400 text-xs mt-auto">
+            {formatDate(createdAt)}
           </div>
         </div>
       </div>

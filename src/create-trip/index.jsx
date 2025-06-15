@@ -163,6 +163,7 @@ export default function CreateTrip() {
         userSelection: formData,
         tripData: parsedData,
         userEmail: auth.currentUser.email,
+        userUid: auth.currentUser.uid,
         id: docID,
       });
 
@@ -170,6 +171,7 @@ export default function CreateTrip() {
         userSelection: formData,
         tripData: parsedData, 
         userEmail: auth.currentUser.email,
+        userUid: auth.currentUser.uid,
         id: docID,
         createdAt: serverTimestamp(),
       });
